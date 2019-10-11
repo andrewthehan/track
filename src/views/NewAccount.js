@@ -1,19 +1,12 @@
-import {
-  Button,
-  Container,
-  DialogActions,
-  DialogContent,
-  DialogTitle,
-  TextField,
-  Typography
-} from "@material-ui/core";
+import { Button, Container, DialogActions, DialogContent, DialogTitle, TextField, Typography } from "@material-ui/core";
 import { makeStyles } from "@material-ui/core/styles";
 import { ArrowForward as ArrowForwardIcon } from "@material-ui/icons";
 import React, { useState } from "react";
 import { useHistory } from "react-router";
 import { Header } from "../components/Header";
-import { useAsyncEffect, useCurrentUser } from "../store/Hooks";
+import { useCurrentUser } from "../store/Hooks";
 import { getDoc, setDoc } from "../store/Store";
+import { useAsyncEffect } from "../utils/HookUtils";
 import { isAnyNull } from "../utils/ObjectUtils";
 
 const useStyles = makeStyles(theme => ({

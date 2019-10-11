@@ -1,14 +1,28 @@
-import { Button, Container, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, IconButton, List, ListItem, ListItemIcon, ListItemText, TextField } from "@material-ui/core";
+import {
+  Container,
+  IconButton,
+  List,
+  ListItem,
+  ListItemIcon,
+  ListItemText,
+  TextField
+} from "@material-ui/core";
 import { makeStyles } from "@material-ui/core/styles";
-import { Folder as FolderIcon, PostAdd as PostAddIcon } from "@material-ui/icons";
+import {
+  Folder as FolderIcon,
+  PostAdd as PostAddIcon
+} from "@material-ui/icons";
 import React, { useState } from "react";
+import { useLocation, useParams } from "react-router";
+import { FormDialog } from "../components/FormDialog";
 import { Frame } from "../components/Frame";
 import { FrameHeader } from "../components/FrameHeader";
 import { Header } from "../components/Header";
 import { LinkRouter } from "../components/LinkRouter";
 import { Loading } from "../components/Loading";
-import { useData, useIsLoading, useIsOwner, useUserId } from "../store/Hooks";
+import { useData, useIsOwner, useUserId } from "../store/Hooks";
 import { addDoc } from "../store/Store";
+import { isAnyNull } from "../utils/ObjectUtils";
 
 const useStyles = makeStyles(theme => ({
   root: {
@@ -33,47 +47,50 @@ const useStyles = makeStyles(theme => ({
   }
 }));
 
-export function Profile({ match }) {
-  const { params, url } = match;
-
+export function Profile() {
   const classes = useStyles();
 
+  const location = useLocation();
+  const params = useParams();
+
   const userId = useUserId(params.user);
-  const isOwner = useIsOwner(userId);
+
+  const user = useData(["users", userId]);
   const collections = useData(["users", userId, "collections"]);
 
-  const isLoading = useIsLoading(collections);
+  const isLoading = isAnyNull(user, collections);
+  const isOwner = useIsOwner(userId);
 
-  const [createCollectionOpen, setCreateCollectionOpen] = useState(false);
-
-  const [createCollectionValues, setCreateCollectionValues] = useState({
-    name: ""
-  });
+  const [createDialogOpen, setCreateDialogOpen] = useState(false);
+  const [createDialogValues, setCreateDialogValues] = useState({});
 
   const renderCollectionHeader = () => {
     const handleChange = name => event => {
-      setCreateCollectionValues({
-        ...createCollectionValues,
+      setCreateDialogValues({
+        ...createDialogValues,
         [name]: event.target.value
       });
     };
 
     const handleOpen = () => {
-      setCreateCollectionOpen(true);
+      setCreateDialogOpen(true);
     };
 
     const handleClose = () => {
-      setCreateCollectionOpen(false);
-      setCreateCollectionValues({});
+      setCreateDialogOpen(false);
+      setCreateDialogValues({});
     };
 
-    const handleSubmit = async e => {
-      e.preventDefault();
+    const handleSubmit = async () => {
+      const name = createDialogValues.name.trim();
+      if (collections.some(c => c.name === name)) {
+        throw new Error(
+          `Failed to create collection because collection with name ${name} already exists!`
+        );
+      }
 
-      await addDoc(["users", userId, "collections"], {
-        name: createCollectionValues.name
-      });
-      setCreateCollectionOpen(false);
+      await addDoc(["users", userId, "collections"], { name });
+      setCreateDialogOpen(false);
     };
 
     const renderCreateCollectionButton = () => {
@@ -90,47 +107,34 @@ export function Profile({ match }) {
         >
           <PostAddIcon />
         </IconButton>,
-        <Dialog
+        <FormDialog
           key="dialog"
-          open={createCollectionOpen}
+          title={`Create a collection`}
+          description="A collection is a personal group of series. Choose a name for
+          your collection."
+          action={handleSubmit}
+          open={createDialogOpen}
           onClose={handleClose}
-          aria-labelledby="create-collection-dialog"
+          submitText="Create"
+          submitDisabled={
+            !createDialogValues.name ||
+            !createDialogValues.name.trim() ||
+            collections.some(c => c.name === createDialogValues.name.trim())
+          }
         >
-          <form onSubmit={handleSubmit}>
-            <DialogTitle>Create a collection</DialogTitle>
-            <DialogContent>
-              <DialogContentText>
-                A collection is a personal group of series. Choose a name for
-                your collection.
-              </DialogContentText>
-              <TextField
-                required
-                autoFocus
-                fullWidth
-                label="Name"
-                onChange={handleChange("name")}
-              />
-            </DialogContent>
-            <DialogActions>
-              <Button variant="contained" onClick={handleClose}>
-                Cancel
-              </Button>
-              <Button
-                variant="contained"
-                color="secondary"
-                type="submit"
-                disabled={!createCollectionValues.name}
-              >
-                Create
-              </Button>
-            </DialogActions>
-          </form>
-        </Dialog>
+          <TextField
+            required
+            autoFocus
+            fullWidth
+            label="Name"
+            onChange={handleChange("name")}
+          />
+        </FormDialog>
       ];
     };
 
     return (
-      <FrameHeader title="Collection">
+      <FrameHeader title="Collections">
         {renderCreateCollectionButton()}
       </FrameHeader>
     );
@@ -141,7 +145,9 @@ export function Profile({ match }) {
       <LinkRouter
         underline="none"
         key={collection.name}
-        to={`${url}/collection/${encodeURIComponent(collection.name)}`}
+        to={`${location.pathname}/collection/${encodeURIComponent(
+          collection.name
+        )}`}
       >
         <ListItem button>
           <ListItemIcon>

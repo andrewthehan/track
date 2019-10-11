@@ -1,32 +1,35 @@
 import { useEffect, useState } from "react";
+import { useIsMounted } from "../utils/HookUtils";
 import { isAnyNull } from "../utils/ObjectUtils";
 import { onUserChange } from "./Firebase";
-import { findByName, registerListener } from "./Store";
+import { registerListener, registerListenerForIdByName } from "./Store";
 
-export function useAsyncEffect(f, deps) {
-  useEffect(() => {
-    f();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, deps);
-}
+// export function useIsLoading(...objects) {
+//   const [isLoading, setIsLoading] = useState(true);
 
-export function useIsLoading(...objects) {
-  const [isLoading, setIsLoading] = useState(true);
+//   useEffect(() => {
+//     console.log("isAnyNull", objects, isAnyNull(...objects));
+//     setIsLoading(isAnyNull(...objects));
+//     // eslint-disable-next-line react-hooks/exhaustive-deps
+//   }, objects);
 
-  useEffect(() => {
-    setIsLoading(isAnyNull(...objects));
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, objects);
-
-  return isLoading;
-}
+//   console.log("isLoading", isLoading);
+//   return isLoading;
+// }
 
 export function useCurrentUser() {
+  const isMounted = useIsMounted();
   const [currentUser, setCurrentUser] = useState();
 
   useEffect(() => {
-    return onUserChange(setCurrentUser);
-  }, []);
+    return onUserChange(user => {
+      if (!isMounted) {
+        return;
+      }
+
+      setCurrentUser(user);
+    });
+  });
 
   return currentUser;
 }
@@ -49,91 +52,98 @@ export function useIsOwner(userId) {
 }
 
 export function useData(ids) {
+  const isMounted = useIsMounted();
   const [data, setData] = useState();
-  useAsyncEffect(async () => {
+
+  useEffect(() => {
+    console.log("USEDATA", ids, isMounted);
     if (isAnyNull(...ids)) {
       setData(null);
       return;
     }
 
-    await registerListener(ids, setData);
-  }, ids);
+    return registerListener(ids, data => {
+      if (!isMounted) {
+        return;
+      }
+
+      setData(data);
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [...ids, isMounted]);
   return data;
 }
 
 export function useUserId(username) {
+  const isMounted = useIsMounted();
   const [userId, setUserId] = useState();
 
-  useAsyncEffect(async () => {
-    if (isAnyNull(username)) {
-      setUserId(null);
-      return;
-    }
+  useEffect(() => {
+    return registerListenerForIdByName(["users"], username, id => {
+      if (!isMounted) {
+        return;
+      }
 
-    const user = await findByName(["users"], username);
-
-    if (isAnyNull(user)) {
-      setUserId(null);
-      return;
-    }
-
-    setUserId(user.id);
-  }, [username]);
+      setUserId(id);
+    });
+  }, [isMounted, username]);
 
   return userId;
 }
 
 export function useCollectionId(username, collectionName) {
+  const isMounted = useIsMounted();
   const userId = useUserId(username);
 
   const [collectionId, setCollectionId] = useState();
 
-  useAsyncEffect(async () => {
+  useEffect(() => {
     if (isAnyNull(userId, collectionName)) {
       setCollectionId(null);
       return;
     }
 
-    const collection = await findByName(
+    return registerListenerForIdByName(
       ["users", userId, "collections"],
-      collectionName
+      collectionName,
+      id => {
+        if (!isMounted) {
+          return;
+        }
+
+        setCollectionId(id);
+      }
     );
-
-    if (isAnyNull(collection)) {
-      setCollectionId(null);
-      return;
-    }
-
-    setCollectionId(collection.id);
-  }, [userId, collectionName]);
+  }, [isMounted, userId, collectionName]);
 
   return collectionId;
 }
 
 export function useSeriesId(username, collectionName, seriesName) {
+  const isMounted = useIsMounted();
   const userId = useUserId(username);
   const collectionId = useCollectionId(username, collectionName);
 
   const [seriesId, setSeriesId] = useState();
 
-  useAsyncEffect(async () => {
+  useEffect(() => {
     if (isAnyNull(userId, collectionId, seriesName)) {
       setSeriesId(null);
       return;
     }
 
-    const series = await findByName(
+    return registerListenerForIdByName(
       ["users", userId, "collections", collectionId, "series"],
-      seriesName
+      seriesName,
+      id => {
+        if (!isMounted) {
+          return;
+        }
+
+        setSeriesId(id);
+      }
     );
-
-    if (isAnyNull(series)) {
-      setSeriesId(null);
-      return;
-    }
-
-    setSeriesId(series.id);
-  }, [userId, collectionId, seriesName]);
+  }, [isMounted, userId, collectionId, seriesName]);
 
   return seriesId;
 }

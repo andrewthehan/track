@@ -1,11 +1,5 @@
 import {
-  Button,
   Container,
-  Dialog,
-  DialogActions,
-  DialogContent,
-  DialogContentText,
-  DialogTitle,
   IconButton,
   List,
   ListItem,
@@ -15,23 +9,26 @@ import {
 } from "@material-ui/core";
 import { makeStyles } from "@material-ui/core/styles";
 import {
+  Delete as DeleteIcon,
   InsertDriveFile as InsertDriveFileIcon,
   PostAdd as PostAddIcon
 } from "@material-ui/icons";
 import React, { useState } from "react";
-import { Frame } from "../components/Frame.js";
-import { FrameHeader } from "../components/FrameHeader.js";
+import { useHistory, useLocation, useParams } from "react-router";
+import { FormDialog } from "../components/FormDialog";
+import { Frame } from "../components/Frame";
+import { FrameHeader } from "../components/FrameHeader";
 import { Header } from "../components/Header";
 import { LinkRouter } from "../components/LinkRouter";
-import { Loading } from "../components/Loading.js";
+import { Loading } from "../components/Loading";
 import {
   useCollectionId,
   useData,
-  useIsLoading,
   useIsOwner,
   useUserId
 } from "../store/Hooks";
-import { addDoc } from "../store/Store.js";
+import { addDoc, deleteDoc } from "../store/Store";
+import { isAnyNull } from "../utils/ObjectUtils";
 
 const useStyles = makeStyles(theme => ({
   root: {
@@ -59,56 +56,58 @@ const useStyles = makeStyles(theme => ({
   }
 }));
 
-export function Collection({ match }) {
-  const { params, url } = match;
-
+export function Collection() {
   const classes = useStyles();
+
+  const history = useHistory();
+  const location = useLocation();
+  const params = useParams();
 
   const userId = useUserId(params.user);
   const collectionId = useCollectionId(params.user, params.collection);
+
+  const ids = ["users", userId, "collections", collectionId];
+  const collection = useData(ids);
+  const series = useData([...ids, "series"]);
+
+  const isLoading = isAnyNull(collection, series);
   const isOwner = useIsOwner(userId);
-  const collection = useData(["users", userId, "collections", collectionId]);
-  const series = useData([
-    "users",
-    userId,
-    "collections",
-    collectionId,
-    "series"
-  ]);
 
-  const isLoading = useIsLoading(collection, series);
-
-  const [createSeriesOpen, setCreateSeriesOpen] = useState(false);
-
-  const [createSeriesValues, setCreateSeriesValues] = useState({
-    name: ""
-  });
+  const [createDialogOpen, setCreateDialogOpen] = useState(false);
+  const [createDialogValues, setCreateDialogValues] = useState({});
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
 
   const renderSeriesHeader = () => {
     const handleChange = name => event => {
-      setCreateSeriesValues({
-        ...createSeriesValues,
+      setCreateDialogValues({
+        ...createDialogValues,
         [name]: event.target.value
       });
     };
 
     const handleOpen = () => {
-      setCreateSeriesOpen(true);
+      setCreateDialogOpen(true);
     };
 
     const handleClose = () => {
-      setCreateSeriesOpen(false);
-      setCreateSeriesValues({});
+      setCreateDialogOpen(false);
+      setCreateDialogValues({});
     };
 
-    const handleSubmit = async e => {
-      e.preventDefault();
+    const handleSubmit = async () => {
+      const name = createDialogValues.name.trim();
+      if (series.some(s => s.name === name)) {
+        throw new Error(
+          `Failed to create series because series with name ${name} already exists!`
+        );
+      }
 
       await addDoc(["users", userId, "collections", collectionId, "series"], {
-        name: createSeriesValues.name,
-        length: 0
+        name,
+        length: 0,
+        status: "Incomplete"
       });
-      setCreateSeriesOpen(false);
+      setCreateDialogOpen(false);
     };
 
     const renderCreateSeriesButton = () => {
@@ -125,48 +124,75 @@ export function Collection({ match }) {
         >
           <PostAddIcon />
         </IconButton>,
-
-        <Dialog
+        <FormDialog
           key="dialog"
-          open={createSeriesOpen}
+          title={`Create a series`}
+          description="A series is a personal entry in a collection. Choose a name for your series."
+          action={handleSubmit}
+          open={createDialogOpen}
           onClose={handleClose}
-          aria-labelledby="create-series-dialog"
+          submitText="Create"
+          submitDisabled={
+            !createDialogValues.name ||
+            !createDialogValues.name.trim() ||
+            series.some(s => s.name === createDialogValues.name.trim())
+          }
         >
-          <form onSubmit={handleSubmit}>
-            <DialogTitle>Create a series</DialogTitle>
-            <DialogContent>
-              <DialogContentText>
-                A series is a personal entry into a collection. Choose a name
-                for your series.
-              </DialogContentText>
-              <TextField
-                required
-                autoFocus
-                fullWidth
-                label="Name"
-                onChange={handleChange("name")}
-              />
-            </DialogContent>
-            <DialogActions>
-              <Button variant="contained" onClick={handleClose}>
-                Cancel
-              </Button>
-              <Button
-                variant="contained"
-                color="secondary"
-                type="submit"
-                disabled={!createSeriesValues.name}
-              >
-                Create
-              </Button>
-            </DialogActions>
-          </form>
-        </Dialog>
+          <TextField
+            required
+            autoFocus
+            fullWidth
+            label="Name"
+            onChange={handleChange("name")}
+          />
+        </FormDialog>
+      ];
+    };
+
+    const renderDeleteCollectionButton = () => {
+      if (!isOwner) {
+        return null;
+      }
+
+      const handleOpen = () => {
+        setDeleteDialogOpen(true);
+      };
+
+      const handleClose = () => {
+        setDeleteDialogOpen(false);
+      };
+
+      const handleDelete = async () => {
+        history.push(`/user/${params.user}`);
+        await deleteDoc(ids);
+      };
+
+      return [
+        <IconButton
+          key="button"
+          color="inherit"
+          aria-label="delete"
+          onClick={handleOpen}
+        >
+          <DeleteIcon />
+        </IconButton>,
+        <FormDialog
+          key="modal"
+          title={`Are you sure you want to delete ${collection.name}?`}
+          description="This action cannot be undone!"
+          action={handleDelete}
+          open={deleteDialogOpen}
+          onClose={handleClose}
+          submitText="Delete"
+        ></FormDialog>
       ];
     };
 
     return (
-      <FrameHeader title="Series">{renderCreateSeriesButton()}</FrameHeader>
+      <FrameHeader title="Series">
+        {renderCreateSeriesButton()}
+        {renderDeleteCollectionButton()}
+      </FrameHeader>
     );
   };
 
@@ -175,7 +201,7 @@ export function Collection({ match }) {
       <LinkRouter
         underline="none"
         key={series.name}
-        to={`${url}/series/${encodeURIComponent(series.name)}`}
+        to={`${location.pathname}/series/${encodeURIComponent(series.name)}`}
       >
         <ListItem button>
           <ListItemIcon>

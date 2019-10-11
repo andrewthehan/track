@@ -1,16 +1,22 @@
-import { Typography } from "@material-ui/core";
+import { IconButton, Typography } from "@material-ui/core";
 import Container from "@material-ui/core/Container";
+import { Delete as DeleteIcon } from "@material-ui/icons";
 import { makeStyles } from "@material-ui/styles";
-import React from "react";
+import React, { useState } from "react";
+import { useHistory, useParams } from "react-router";
+import { FormDialog } from "../components/FormDialog";
 import { Frame } from "../components/Frame";
 import { FrameHeader } from "../components/FrameHeader";
 import { Header } from "../components/Header";
+import { Loading } from "../components/Loading";
 import {
   useCollectionId,
   useData,
+  useIsOwner,
   useSeriesId,
   useUserId
 } from "../store/Hooks";
+import { deleteDoc } from "../store/Store";
 import { isAnyNull } from "../utils/ObjectUtils";
 
 const useStyles = makeStyles(theme => ({
@@ -34,43 +40,102 @@ const useStyles = makeStyles(theme => ({
 }));
 
 export function Series({ match }) {
-  const { user, collection, series } = match.params;
-
   const classes = useStyles();
 
-  const userId = useUserId(user);
-  const collectionId = useCollectionId(user, collection);
-  const seriesId = useSeriesId(user, collection, series);
+  const history = useHistory();
+  const params = useParams();
 
-  const seriesData = useData([
+  const userId = useUserId(params.user);
+  const collectionId = useCollectionId(params.user, params.collection);
+  const seriesId = useSeriesId(params.user, params.collection, params.series);
+
+  const ids = [
     "users",
     userId,
     "collections",
     collectionId,
     "series",
     seriesId
-  ]);
+  ];
+  const series = useData(ids);
+
+  const isLoading = isAnyNull(seriesId, series);
+  const isOwner = useIsOwner(userId);
+
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
 
   const renderSeriesHeader = () => {
-    if (isAnyNull(seriesData)) {
-      return null;
-    }
+    const renderDeleteSeriesButton = () => {
+      if (!isOwner) {
+        return null;
+      }
+
+      const handleOpen = () => {
+        setDeleteDialogOpen(true);
+      };
+
+      const handleClose = () => {
+        setDeleteDialogOpen(false);
+      };
+
+      const handleDelete = async () => {
+        history.push(`/user/${params.user}/collection/${params.collection}`);
+        await deleteDoc(ids);
+      };
+
+      return [
+        <IconButton
+          key="button"
+          color="inherit"
+          aria-label="delete"
+          onClick={handleOpen}
+        >
+          <DeleteIcon />
+        </IconButton>,
+        <FormDialog
+          key="modal"
+          title={`Are you sure you want to delete ${series.name}?`}
+          description="This action cannot be undone!"
+          action={handleDelete}
+          open={deleteDialogOpen}
+          onClose={handleClose}
+          submitText="Delete"
+        ></FormDialog>
+      ];
+    };
 
     return (
-      <FrameHeader title={seriesData.name}>
-        <Typography>{seriesData.length}</Typography>
+      <FrameHeader title={series.name}>
+        {renderDeleteSeriesButton()}
       </FrameHeader>
+    );
+  };
+
+  const renderSeriesData = () => {
+    return (
+      <Container maxWidth="md">
+        <Typography variant="h6">Length</Typography>
+        <Typography variant="body1">{series.length}</Typography>
+
+        <Typography variant="h6">Status</Typography>
+        <Typography variant="body1">{series.status}</Typography>
+      </Container>
     );
   };
 
   return (
     <Container maxWidth={false} className={classes.root}>
-      <Header location={[user, collection, series]} />
-      <Container maxWidth="md" className={classes.content}>
-        <Frame maxWidth="lg" className={classes.seriesContainer}>
-          {renderSeriesHeader()}
-        </Frame>
-      </Container>
+      <Header location={[params.user, params.collection, params.series]} />
+      {isLoading ? (
+        <Loading />
+      ) : (
+        <Container maxWidth="md" className={classes.content}>
+          <Frame maxWidth="lg" className={classes.seriesContainer}>
+            {renderSeriesHeader()}
+            {renderSeriesData()}
+          </Frame>
+        </Container>
+      )}
     </Container>
   );
 }
