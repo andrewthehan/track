@@ -11,7 +11,9 @@ import { makeStyles } from "@material-ui/core/styles";
 import {
   Delete as DeleteIcon,
   InsertDriveFile as InsertDriveFileIcon,
-  PostAdd as PostAddIcon
+  PostAdd as PostAddIcon,
+  InsertDriveFileOutlined as InsertDriveFileOutlinedIcon,
+  Error as ErrorIcon
 } from "@material-ui/icons";
 import React, { useState } from "react";
 import { useHistory, useLocation, useParams } from "react-router";
@@ -97,7 +99,7 @@ export function Collection() {
     const handleSubmit = async () => {
       const name = createDialogValues.name.trim();
       if (series.some(s => s.name === name)) {
-        throw new Error(
+        throw new ErrorIcon(
           `Failed to create series because series with name ${name} already exists!`
         );
       }
@@ -197,6 +199,17 @@ export function Collection() {
   };
 
   const renderSeries = (series, i) => {
+    const renderSeriesStatusIcon = status => {
+      switch (status) {
+        case "Complete":
+          return <InsertDriveFileIcon />;
+        case "Incomplete":
+          return <InsertDriveFileOutlinedIcon />;
+        default:
+          return <ErrorIcon />;
+      }
+    };
+
     return (
       <LinkRouter
         underline="none"
@@ -204,9 +217,7 @@ export function Collection() {
         to={`${location.pathname}/series/${encodeURIComponent(series.name)}`}
       >
         <ListItem button>
-          <ListItemIcon>
-            <InsertDriveFileIcon />
-          </ListItemIcon>
+          <ListItemIcon>{renderSeriesStatusIcon(series.status)}</ListItemIcon>
           <ListItemText primary={series.name} secondary={series.length} />
           {/* <ListSubheader>
             <Typography>{collection.length}</Typography>

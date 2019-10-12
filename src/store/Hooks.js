@@ -4,19 +4,6 @@ import { isAnyNull } from "../utils/ObjectUtils";
 import { onUserChange } from "./Firebase";
 import { registerListener, registerListenerForIdByName } from "./Store";
 
-// export function useIsLoading(...objects) {
-//   const [isLoading, setIsLoading] = useState(true);
-
-//   useEffect(() => {
-//     console.log("isAnyNull", objects, isAnyNull(...objects));
-//     setIsLoading(isAnyNull(...objects));
-//     // eslint-disable-next-line react-hooks/exhaustive-deps
-//   }, objects);
-
-//   console.log("isLoading", isLoading);
-//   return isLoading;
-// }
-
 export function useCurrentUser() {
   const isMounted = useIsMounted();
   const [currentUser, setCurrentUser] = useState();
@@ -56,7 +43,6 @@ export function useData(ids) {
   const [data, setData] = useState();
 
   useEffect(() => {
-    console.log("USEDATA", ids, isMounted);
     if (isAnyNull(...ids)) {
       setData(null);
       return;

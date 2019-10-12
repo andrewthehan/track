@@ -80,7 +80,6 @@ export function Series() {
     setEditValues(series);
   }, [series]);
 
-  console.log(editValues);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
 
   const renderSeriesHeader = () => {
@@ -163,32 +162,35 @@ export function Series() {
         >
           <Grid item xs={12}>
             <TextField
-              required
               autoFocus
+              required
               fullWidth
               label="Name"
               value={editValues.name || ""}
               onChange={handleChange("name")}
+              disabled={!isOwner}
             />
           </Grid>
           <Grid item xs={6}>
             <TextField
               required
-              autoFocus
               fullWidth
               label="Length"
               type="number"
               value={editValues.length || 0}
               onChange={handleChange("length")}
+              disabled={!isOwner}
             />
           </Grid>
           <Grid item xs={6}>
             <TextField
+              required
               select
               fullWidth
               label="Status"
               value={editValues.status || ""}
               onChange={handleChange("status")}
+              disabled={!isOwner}
             >
               <MenuItem value="Incomplete">Incomplete</MenuItem>
               <MenuItem value="Complete">Complete</MenuItem>
