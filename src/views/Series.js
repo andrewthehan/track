@@ -1,8 +1,14 @@
-import { IconButton, Typography } from "@material-ui/core";
+import {
+  Button,
+  Grid,
+  IconButton,
+  MenuItem,
+  TextField
+} from "@material-ui/core";
 import Container from "@material-ui/core/Container";
 import { Delete as DeleteIcon } from "@material-ui/icons";
 import { makeStyles } from "@material-ui/styles";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useHistory, useParams } from "react-router";
 import { FormDialog } from "../components/FormDialog";
 import { Frame } from "../components/Frame";
@@ -16,8 +22,8 @@ import {
   useSeriesId,
   useUserId
 } from "../store/Hooks";
-import { deleteDoc } from "../store/Store";
-import { isAnyNull } from "../utils/ObjectUtils";
+import { deleteDoc, setDoc } from "../store/Store";
+import { areStringsEqual, isAnyNull } from "../utils/ObjectUtils";
 
 const useStyles = makeStyles(theme => ({
   root: {
@@ -30,16 +36,18 @@ const useStyles = makeStyles(theme => ({
     marginTop: "64px",
     padding: "24px",
     display: "flex",
-    flexFlow: "row",
-    justifyContent: "center"
+    flexFlow: "row"
   },
-  collectionContainer: {
+  metadataContainer: {
     flex: 1,
     height: "100%"
+  },
+  metadataContent: {
+    padding: "16px"
   }
 }));
 
-export function Series({ match }) {
+export function Series() {
   const classes = useStyles();
 
   const history = useHistory();
@@ -62,6 +70,17 @@ export function Series({ match }) {
   const isLoading = isAnyNull(seriesId, series);
   const isOwner = useIsOwner(userId);
 
+  const [editValues, setEditValues] = useState({});
+
+  useEffect(() => {
+    if (isAnyNull(series)) {
+      return;
+    }
+
+    setEditValues(series);
+  }, [series]);
+
+  console.log(editValues);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
 
   const renderSeriesHeader = () => {
@@ -105,21 +124,92 @@ export function Series({ match }) {
     };
 
     return (
-      <FrameHeader title={series.name}>
-        {renderDeleteSeriesButton()}
-      </FrameHeader>
+      <FrameHeader title="Metadata">{renderDeleteSeriesButton()}</FrameHeader>
     );
   };
 
   const renderSeriesData = () => {
-    return (
-      <Container maxWidth="md">
-        <Typography variant="h6">Length</Typography>
-        <Typography variant="body1">{series.length}</Typography>
+    const handleChange = name => event => {
+      setEditValues({
+        ...editValues,
+        [name]: event.target.value
+      });
+    };
 
-        <Typography variant="h6">Status</Typography>
-        <Typography variant="body1">{series.status}</Typography>
-      </Container>
+    const handleMetadataSubmit = async e => {
+      e.preventDefault();
+
+      if (!areStringsEqual(series.name, editValues.name)) {
+        history.push(
+          `/user/${params.user}/collection/${params.collection}/series/${editValues.name}`
+        );
+      }
+
+      await setDoc(ids, {
+        name: editValues.name,
+        length: editValues.length,
+        status: editValues.status
+      });
+    };
+
+    return (
+      <form onSubmit={handleMetadataSubmit}>
+        <Grid
+          container
+          justify="center"
+          alignItems="center"
+          spacing={2}
+          className={classes.metadataContent}
+        >
+          <Grid item xs={12}>
+            <TextField
+              required
+              autoFocus
+              fullWidth
+              label="Name"
+              value={editValues.name || ""}
+              onChange={handleChange("name")}
+            />
+          </Grid>
+          <Grid item xs={6}>
+            <TextField
+              required
+              autoFocus
+              fullWidth
+              label="Length"
+              type="number"
+              value={editValues.length || 0}
+              onChange={handleChange("length")}
+            />
+          </Grid>
+          <Grid item xs={6}>
+            <TextField
+              select
+              fullWidth
+              label="Status"
+              value={editValues.status || ""}
+              onChange={handleChange("status")}
+            >
+              <MenuItem value="Incomplete">Incomplete</MenuItem>
+              <MenuItem value="Complete">Complete</MenuItem>
+            </TextField>
+          </Grid>
+          <Grid item xs={3}>
+            <Button
+              variant="contained"
+              color="secondary"
+              type="submit"
+              disabled={
+                areStringsEqual(series.name, editValues.name) &&
+                series.length === editValues.length &&
+                areStringsEqual(series.status, editValues.status)
+              }
+            >
+              Update
+            </Button>
+          </Grid>
+        </Grid>
+      </form>
     );
   };
 
@@ -129,8 +219,8 @@ export function Series({ match }) {
       {isLoading ? (
         <Loading />
       ) : (
-        <Container maxWidth="md" className={classes.content}>
-          <Frame maxWidth="lg" className={classes.seriesContainer}>
+        <Container maxWidth="sm" className={classes.content}>
+          <Frame maxWidth="lg" className={classes.metadataContainer}>
             {renderSeriesHeader()}
             {renderSeriesData()}
           </Frame>
