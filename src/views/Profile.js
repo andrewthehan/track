@@ -140,7 +140,7 @@ export function Profile() {
     );
   };
 
-  const renderCollection = (collection, i) => {
+  const renderCollection = collection => {
     return (
       <LinkRouter
         underline="none"
@@ -153,10 +153,7 @@ export function Profile() {
           <ListItemIcon>
             <FolderIcon />
           </ListItemIcon>
-          <ListItemText
-            primary={collection.name}
-            secondary={collection.length}
-          />
+          <ListItemText primary={collection.name} />
           {/* <ListSubheader>
             <Typography>{collection.length}</Typography>
           </ListSubheader> */}
