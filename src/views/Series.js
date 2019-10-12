@@ -177,7 +177,7 @@ export function Series() {
               fullWidth
               label="Length"
               type="number"
-              value={editValues.length || 0}
+              value={editValues.length || ""}
               onChange={handleChange("length")}
               disabled={!isOwner}
             />
