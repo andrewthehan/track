@@ -44,6 +44,11 @@ const useStyles = makeStyles(theme => ({
   },
   metadataContent: {
     padding: "16px"
+  },
+  gridItem: {
+    display: "flex",
+    justifyContent: "center",
+    alignItems: "center"
   }
 }));
 
@@ -160,7 +165,7 @@ export function Series() {
           spacing={2}
           className={classes.metadataContent}
         >
-          <Grid item xs={12}>
+          <Grid item xs={12} className={classes.gridItem}>
             <TextField
               autoFocus
               required
@@ -171,7 +176,7 @@ export function Series() {
               disabled={!isOwner}
             />
           </Grid>
-          <Grid item xs={6}>
+          <Grid item xs={6} className={classes.gridItem}>
             <TextField
               required
               fullWidth
@@ -182,7 +187,7 @@ export function Series() {
               disabled={!isOwner}
             />
           </Grid>
-          <Grid item xs={6}>
+          <Grid item xs={6} className={classes.gridItem}>
             <TextField
               required
               select
@@ -196,7 +201,7 @@ export function Series() {
               <MenuItem value="Complete">Complete</MenuItem>
             </TextField>
           </Grid>
-          <Grid item xs={3}>
+          <Grid item xs={3} className={classes.gridItem}>
             <Button
               variant="contained"
               color="secondary"
