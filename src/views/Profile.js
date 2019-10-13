@@ -5,7 +5,8 @@ import {
   ListItem,
   ListItemIcon,
   ListItemText,
-  TextField
+  TextField,
+  Typography
 } from "@material-ui/core";
 import { makeStyles } from "@material-ui/core/styles";
 import {
@@ -161,8 +162,25 @@ export function Profile() {
   };
 
   const renderCollections = () => {
+    const renderEmptyCollection = () => {
+      if (collections.length !== 0) {
+        return null;
+      }
+
+      return isOwner ? (
+        <Typography align="center" color="textSecondary">
+          Press <PostAddIcon /> to add the first entry.
+        </Typography>
+      ) : (
+        <Typography align="center" color="textSecondary">
+          Empty
+        </Typography>
+      );
+    };
+
     return (
       <List aria-label="collections" className={classes.collectionList}>
+        {renderEmptyCollection()}
         {collections.map(renderCollection)}
       </List>
     );

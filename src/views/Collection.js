@@ -6,7 +6,8 @@ import {
   ListItemIcon,
   ListItemSecondaryAction,
   ListItemText,
-  TextField
+  TextField,
+  Typography
 } from "@material-ui/core";
 import { makeStyles } from "@material-ui/core/styles";
 import {
@@ -256,8 +257,25 @@ export function Collection() {
   };
 
   const renderSeriesList = () => {
+    const renderEmptySeries = () => {
+      if (series.length !== 0) {
+        return null;
+      }
+
+      return isOwner ? (
+        <Typography align="center" color="textSecondary">
+          Press <PostAddIcon /> to add the first entry.
+        </Typography>
+      ) : (
+        <Typography align="center" color="textSecondary">
+          Empty
+        </Typography>
+      );
+    };
+
     return (
       <List aria-label="series" className={classes.seriesList}>
+        {renderEmptySeries()}
         {series.map(renderSeries)}
       </List>
     );
