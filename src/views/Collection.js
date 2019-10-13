@@ -4,16 +4,19 @@ import {
   List,
   ListItem,
   ListItemIcon,
+  ListItemSecondaryAction,
   ListItemText,
   TextField
 } from "@material-ui/core";
 import { makeStyles } from "@material-ui/core/styles";
 import {
+  ArrowDropDown as ArrowDropDownIcon,
+  ArrowDropUp as ArrowDropUpIcon,
   Delete as DeleteIcon,
+  Error as ErrorIcon,
   InsertDriveFile as InsertDriveFileIcon,
-  PostAdd as PostAddIcon,
   InsertDriveFileOutlined as InsertDriveFileOutlinedIcon,
-  Error as ErrorIcon
+  PostAdd as PostAddIcon
 } from "@material-ui/icons";
 import React, { useState } from "react";
 import { useHistory, useLocation, useParams } from "react-router";
@@ -21,7 +24,6 @@ import { FormDialog } from "../components/FormDialog";
 import { Frame } from "../components/Frame";
 import { FrameHeader } from "../components/FrameHeader";
 import { Header } from "../components/Header";
-import { LinkRouter } from "../components/LinkRouter";
 import { Loading } from "../components/Loading";
 import {
   useCollectionId,
@@ -29,7 +31,7 @@ import {
   useIsOwner,
   useUserId
 } from "../store/Hooks";
-import { addDoc, deleteDoc } from "../store/Store";
+import { addDoc, deleteDoc, setDoc } from "../store/Store";
 import { isAnyNull } from "../utils/ObjectUtils";
 
 const useStyles = makeStyles(theme => ({
@@ -55,6 +57,11 @@ const useStyles = makeStyles(theme => ({
   },
   seriesList: {
     flex: 1
+  },
+  seriesLengthContainer: {
+    display: "flex",
+    justifyContent: "center",
+    alignItems: "center"
   }
 }));
 
@@ -210,20 +217,41 @@ export function Collection() {
       }
     };
 
+    const handleSeriesClick = () => {
+      history.push(
+        `${location.pathname}/series/${encodeURIComponent(series.name)}`
+      );
+    };
+
+    const handleSeriesIncrement = async () => {
+      await setDoc([...ids, "series", series.id], {
+        ...series,
+        length: +series.length + 1
+      });
+    };
+
+    const handleSeriesDecrement = async () => {
+      await setDoc([...ids, "series", series.id], {
+        ...series,
+        length: +series.length - 1
+      });
+    };
+
     return (
-      <LinkRouter
-        underline="none"
-        key={series.name}
-        to={`${location.pathname}/series/${encodeURIComponent(series.name)}`}
-      >
-        <ListItem button>
-          <ListItemIcon>{renderSeriesStatusIcon(series.status)}</ListItemIcon>
-          <ListItemText primary={series.name} secondary={series.length} />
-          {/* <ListSubheader>
-            <Typography>{collection.length}</Typography>
-          </ListSubheader> */}
-        </ListItem>
-      </LinkRouter>
+      <ListItem key={series.id} button onClick={handleSeriesClick}>
+        <ListItemIcon>{renderSeriesStatusIcon(series.status)}</ListItemIcon>
+        <ListItemText primary={series.name} secondary={series.length} />
+        <ListItemSecondaryAction className={classes.seriesLengthContainer}>
+          {/* <ButtonGroup aria-label="split button"> */}
+          <IconButton variant="outlined" onClick={handleSeriesIncrement}>
+            <ArrowDropUpIcon />
+          </IconButton>
+          <IconButton variant="outlined" onClick={handleSeriesDecrement}>
+            <ArrowDropDownIcon />
+          </IconButton>
+          {/* </ButtonGroup> */}
+        </ListItemSecondaryAction>
+      </ListItem>
     );
   };
 

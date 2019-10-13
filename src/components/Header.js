@@ -14,19 +14,25 @@ import {
   ListAlt as ListAltIcon,
   NavigateNext as NavigateNextIcon
 } from "@material-ui/icons";
-import React from "react";
+import React, { useState } from "react";
 import { signInWithPopup, signOut } from "../store/Firebase";
 import { useCurrentUser } from "../store/Hooks";
 import { zip } from "../utils/ArrayUtils";
-import { LinkRouter } from "./LinkRouter";
+import { useScrollPosition } from "../utils/HookUtils";
 import { isAnyNull } from "../utils/ObjectUtils";
+import { LinkRouter } from "./LinkRouter";
 
 const useStyles = makeStyles(theme => ({
   appBar: {
-    zIndex: theme.zIndex.appBar + 1
+    zIndex: theme.zIndex.appBar + 1,
+    backgroundColor: theme.palette.background.default,
+    boxShadow: "none",
+    transition: "background-color .5s, box-shadow .5s"
   },
-  logo: {
-    marginRight: theme.spacing(2)
+  appBarScrolled: {
+    zIndex: theme.zIndex.appBar + 1,
+    backgroundColor: theme.palette.primary.main,
+    transition: "background-color .5s, box-shadow .5s"
   },
   breadcrumbs: {
     flex: 1
@@ -38,17 +44,14 @@ export function Header({ location = [] }) {
 
   const currentUser = useCurrentUser();
 
-  const [anchorEl, setAnchorEl] = React.useState(null);
+  const [anchorEl, setAnchorEl] = useState();
+
+  const scrollPosition = useScrollPosition(window);
 
   const renderLogo = () => {
     return (
       <LinkRouter to="/">
-        <IconButton
-          edge="start"
-          className={classes.logo}
-          color="inherit"
-          aria-label="logo"
-        >
+        <IconButton edge="start" color="inherit" aria-label="logo">
           <ListAltIcon />
         </IconButton>
       </LinkRouter>
@@ -116,7 +119,7 @@ export function Header({ location = [] }) {
     return (
       <div>
         <Button
-          aria-controls="simple-menu"
+          aria-controls="avatar"
           aria-haspopup="true"
           onClick={handleClick}
         >
@@ -135,7 +138,12 @@ export function Header({ location = [] }) {
   };
 
   return (
-    <AppBar position="fixed" className={classes.appBar}>
+    <AppBar
+      position="fixed"
+      className={
+        scrollPosition.y === 0 ? classes.appBar : classes.appBarScrolled
+      }
+    >
       <Toolbar>
         {renderLogo()}
         {renderBreadcrumbs()}

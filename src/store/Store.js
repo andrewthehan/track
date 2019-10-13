@@ -28,8 +28,8 @@ export function getRef(ids) {
 export function registerListener(ids, callback) {
   return getRef(ids).onSnapshot(
     isDoc(ids)
-      ? d => callback(d.data())
-      : c => callback(c.docs.map(d => d.data()))
+      ? d => callback({ id: d.id, ...d.data() })
+      : c => callback(c.docs.map(d => ({ id: d.id, ...d.data() })))
   );
 }
 

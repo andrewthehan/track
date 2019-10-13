@@ -13,12 +13,11 @@ import {
   PostAdd as PostAddIcon
 } from "@material-ui/icons";
 import React, { useState } from "react";
-import { useLocation, useParams } from "react-router";
+import { useHistory, useLocation, useParams } from "react-router";
 import { FormDialog } from "../components/FormDialog";
 import { Frame } from "../components/Frame";
 import { FrameHeader } from "../components/FrameHeader";
 import { Header } from "../components/Header";
-import { LinkRouter } from "../components/LinkRouter";
 import { Loading } from "../components/Loading";
 import { useData, useIsOwner, useUserId } from "../store/Hooks";
 import { addDoc } from "../store/Store";
@@ -50,6 +49,7 @@ const useStyles = makeStyles(theme => ({
 export function Profile() {
   const classes = useStyles();
 
+  const history = useHistory();
   const location = useLocation();
   const params = useParams();
 
@@ -141,24 +141,22 @@ export function Profile() {
   };
 
   const renderCollection = collection => {
+    const handleSeriesClick = () => {
+      history.push(
+        `${location.pathname}/collection/${encodeURIComponent(collection.name)}`
+      );
+    };
+
     return (
-      <LinkRouter
-        underline="none"
-        key={collection.name}
-        to={`${location.pathname}/collection/${encodeURIComponent(
-          collection.name
-        )}`}
-      >
-        <ListItem button>
-          <ListItemIcon>
-            <FolderIcon />
-          </ListItemIcon>
-          <ListItemText primary={collection.name} />
-          {/* <ListSubheader>
+      <ListItem key={collection.id} button onClick={handleSeriesClick}>
+        <ListItemIcon>
+          <FolderIcon />
+        </ListItemIcon>
+        <ListItemText primary={collection.name} />
+        {/* <ListSubheader>
             <Typography>{collection.length}</Typography>
           </ListSubheader> */}
-        </ListItem>
-      </LinkRouter>
+      </ListItem>
     );
   };
 
