@@ -7,6 +7,7 @@ import {
 } from "@material-ui/core";
 import React from "react";
 import { isAnyNull } from "../utils/ObjectUtils";
+import { debounce } from "../utils/FunctionUtils";
 
 const useStyles = makeStyles(theme => ({
   root: {
@@ -26,8 +27,9 @@ const useStyles = makeStyles(theme => ({
 export function FrameHeader({ children, title, onSearch = null }) {
   const classes = useStyles();
 
+  const onSearchDebounced = debounce(onSearch, 500);
   const handleChange = e => {
-    onSearch(e.target.value);
+    onSearchDebounced(e.target.value);
   };
 
   const renderSearchField = () => {

@@ -19,7 +19,7 @@ import {
   InsertDriveFileOutlined as InsertDriveFileOutlinedIcon,
   PostAdd as PostAddIcon
 } from "@material-ui/icons";
-import React, { useState } from "react";
+import React, { forwardRef, useState } from "react";
 import { useHistory, useLocation, useParams } from "react-router";
 import { FormDialog } from "../components/FormDialog";
 import { Frame } from "../components/Frame";
@@ -34,6 +34,7 @@ import {
   useUserId
 } from "../store/Hooks";
 import { addDoc, deleteDoc, setDoc } from "../store/Store";
+import { sortStringsBy } from "../utils/ArrayUtils";
 import { isAnyNull } from "../utils/ObjectUtils";
 
 const useStyles = makeStyles(theme => ({
@@ -240,7 +241,13 @@ export function Collection() {
     )}`;
 
     return (
-      <ListItem key={series.id} button component={LinkRouter} to={link}>
+      <ListItem
+        key={series.id}
+        button
+        component={forwardRef((props, ref) => (
+          <LinkRouter to={link} {...props} innerRef={ref} />
+        ))}
+      >
         <ListItemIcon>{renderSeriesStatusIcon(series.status)}</ListItemIcon>
         <ListItemText primary={series.name} secondary={series.length} />
         <ListItemSecondaryAction className={classes.seriesLengthContainer}>
@@ -276,8 +283,12 @@ export function Collection() {
       <List aria-label="series" className={classes.seriesList}>
         {renderEmptySeries()}
         {series
-          .sort((a, b) => a.name.localeCompare(b.name))
-          .filter(s => searchQuery.length === 0 || s.name.includes(searchQuery))
+          .sort(sortStringsBy(s => s.name))
+          .filter(
+            s =>
+              searchQuery.length === 0 ||
+              s.name.toLowerCase().includes(searchQuery.toLowerCase())
+          )
           .map(renderSeries)}
       </List>
     );

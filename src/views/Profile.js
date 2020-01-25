@@ -13,7 +13,7 @@ import {
   Folder as FolderIcon,
   PostAdd as PostAddIcon
 } from "@material-ui/icons";
-import React, { useState } from "react";
+import React, { forwardRef, useState } from "react";
 import { useLocation, useParams } from "react-router";
 import { FormDialog } from "../components/FormDialog";
 import { Frame } from "../components/Frame";
@@ -23,6 +23,7 @@ import { LinkRouter } from "../components/LinkRouter";
 import { Loading } from "../components/Loading";
 import { useData, useIsOwner, useUserId } from "../store/Hooks";
 import { addDoc } from "../store/Store";
+import { sortStringsBy } from "../utils/ArrayUtils";
 import { isAnyNull } from "../utils/ObjectUtils";
 
 const useStyles = makeStyles(theme => ({
@@ -149,7 +150,13 @@ export function Profile() {
     )}`;
 
     return (
-      <ListItem key={collection.id} button component={LinkRouter} to={link}>
+      <ListItem
+        key={collection.id}
+        button
+        component={forwardRef((props, ref) => (
+          <LinkRouter to={link} {...props} innerRef={ref} />
+        ))}
+      >
         <ListItemIcon>
           <FolderIcon />
         </ListItemIcon>
@@ -179,8 +186,12 @@ export function Profile() {
       <List aria-label="collections" className={classes.collectionList}>
         {renderEmptyCollection()}
         {collections
-          .sort((a, b) => a.name.localeCompare(b.name))
-          .filter(c => searchQuery.length === 0 || c.name.includes(searchQuery))
+          .sort(sortStringsBy(c => c.name))
+          .filter(
+            c =>
+              searchQuery.length === 0 ||
+              c.name.toLowerCase().includes(searchQuery.toLowerCase())
+          )
           .map(renderCollection)}
       </List>
     );

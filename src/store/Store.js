@@ -63,17 +63,23 @@ export async function getDoc(ids) {
 export async function addDoc(ids, data) {
   checkIsCollection(ids);
 
+  console.log("ADD", ids.join("."), data);
+
   await getRef(ids).add(data);
 }
 
 export async function setDoc(ids, data) {
   checkIsDoc(ids);
 
+  console.log("SET", ids.join("."), data);
+
   await getRef(ids).set(data);
 }
 
 export async function deleteDoc(ids) {
   checkIsDoc(ids);
+
+  console.log("DELETE", ids.join("."));
 
   await getRef(ids).delete();
 }
