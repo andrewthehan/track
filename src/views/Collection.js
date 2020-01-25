@@ -25,6 +25,7 @@ import { FormDialog } from "../components/FormDialog";
 import { Frame } from "../components/Frame";
 import { FrameHeader } from "../components/FrameHeader";
 import { Header } from "../components/Header";
+import { LinkRouter } from "../components/LinkRouter";
 import { Loading } from "../components/Loading";
 import {
   useCollectionId,
@@ -43,7 +44,7 @@ const useStyles = makeStyles(theme => ({
     flexFlow: "column"
   },
   content: {
-    marginTop: "64px",
+    marginTop: "48px",
     padding: "24px",
     display: "flex",
     flexFlow: "row",
@@ -86,6 +87,8 @@ export function Collection() {
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
   const [createDialogValues, setCreateDialogValues] = useState({});
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+
+  const [searchQuery, setSearchQuery] = useState("");
 
   const renderSeriesHeader = () => {
     const handleChange = name => event => {
@@ -199,7 +202,7 @@ export function Collection() {
     };
 
     return (
-      <FrameHeader title="Series">
+      <FrameHeader title="Series" onSearch={setSearchQuery}>
         {renderCreateSeriesButton()}
         {renderDeleteCollectionButton()}
       </FrameHeader>
@@ -218,12 +221,6 @@ export function Collection() {
       }
     };
 
-    const handleSeriesClick = () => {
-      history.push(
-        `${location.pathname}/series/${encodeURIComponent(series.name)}`
-      );
-    };
-
     const handleSeriesIncrement = async () => {
       await setDoc([...ids, "series", series.id], {
         ...series,
@@ -238,19 +235,21 @@ export function Collection() {
       });
     };
 
+    const link = `${location.pathname}/series/${encodeURIComponent(
+      series.name
+    )}`;
+
     return (
-      <ListItem key={series.id} button onClick={handleSeriesClick}>
+      <ListItem key={series.id} button component={LinkRouter} to={link}>
         <ListItemIcon>{renderSeriesStatusIcon(series.status)}</ListItemIcon>
         <ListItemText primary={series.name} secondary={series.length} />
         <ListItemSecondaryAction className={classes.seriesLengthContainer}>
-          {/* <ButtonGroup aria-label="split button"> */}
           <IconButton variant="outlined" onClick={handleSeriesIncrement}>
             <ArrowDropUpIcon />
           </IconButton>
           <IconButton variant="outlined" onClick={handleSeriesDecrement}>
             <ArrowDropDownIcon />
           </IconButton>
-          {/* </ButtonGroup> */}
         </ListItemSecondaryAction>
       </ListItem>
     );
@@ -276,7 +275,10 @@ export function Collection() {
     return (
       <List aria-label="series" className={classes.seriesList}>
         {renderEmptySeries()}
-        {series.map(renderSeries)}
+        {series
+          .sort((a, b) => a.name.localeCompare(b.name))
+          .filter(s => searchQuery.length === 0 || s.name.includes(searchQuery))
+          .map(renderSeries)}
       </List>
     );
   };

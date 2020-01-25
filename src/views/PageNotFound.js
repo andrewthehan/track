@@ -12,7 +12,7 @@ const useStyles = makeStyles(theme => ({
     flexFlow: "column"
   },
   content: {
-    marginTop: "64px",
+    marginTop: "48px",
     padding: "24px",
     flex: 1,
     display: "flex",

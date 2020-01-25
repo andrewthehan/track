@@ -14,11 +14,12 @@ import {
   PostAdd as PostAddIcon
 } from "@material-ui/icons";
 import React, { useState } from "react";
-import { useHistory, useLocation, useParams } from "react-router";
+import { useLocation, useParams } from "react-router";
 import { FormDialog } from "../components/FormDialog";
 import { Frame } from "../components/Frame";
 import { FrameHeader } from "../components/FrameHeader";
 import { Header } from "../components/Header";
+import { LinkRouter } from "../components/LinkRouter";
 import { Loading } from "../components/Loading";
 import { useData, useIsOwner, useUserId } from "../store/Hooks";
 import { addDoc } from "../store/Store";
@@ -32,7 +33,7 @@ const useStyles = makeStyles(theme => ({
     flexFlow: "column"
   },
   content: {
-    marginTop: "64px",
+    marginTop: "48px",
     padding: "24px",
     display: "flex",
     flexFlow: "row",
@@ -50,7 +51,6 @@ const useStyles = makeStyles(theme => ({
 export function Profile() {
   const classes = useStyles();
 
-  const history = useHistory();
   const location = useLocation();
   const params = useParams();
 
@@ -64,6 +64,8 @@ export function Profile() {
 
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
   const [createDialogValues, setCreateDialogValues] = useState({});
+
+  const [searchQuery, setSearchQuery] = useState("");
 
   const renderCollectionHeader = () => {
     const handleChange = name => event => {
@@ -135,28 +137,23 @@ export function Profile() {
     };
 
     return (
-      <FrameHeader title="Collections">
+      <FrameHeader title="Collections" onSearch={setSearchQuery}>
         {renderCreateCollectionButton()}
       </FrameHeader>
     );
   };
 
   const renderCollection = collection => {
-    const handleSeriesClick = () => {
-      history.push(
-        `${location.pathname}/collection/${encodeURIComponent(collection.name)}`
-      );
-    };
+    const link = `${location.pathname}/collection/${encodeURIComponent(
+      collection.name
+    )}`;
 
     return (
-      <ListItem key={collection.id} button onClick={handleSeriesClick}>
+      <ListItem key={collection.id} button component={LinkRouter} to={link}>
         <ListItemIcon>
           <FolderIcon />
         </ListItemIcon>
         <ListItemText primary={collection.name} />
-        {/* <ListSubheader>
-            <Typography>{collection.length}</Typography>
-          </ListSubheader> */}
       </ListItem>
     );
   };
@@ -181,7 +178,10 @@ export function Profile() {
     return (
       <List aria-label="collections" className={classes.collectionList}>
         {renderEmptyCollection()}
-        {collections.map(renderCollection)}
+        {collections
+          .sort((a, b) => a.name.localeCompare(b.name))
+          .filter(c => searchQuery.length === 0 || c.name.includes(searchQuery))
+          .map(renderCollection)}
       </List>
     );
   };

@@ -1,4 +1,12 @@
-import { Button, Container, DialogActions, DialogContent, DialogTitle, TextField, Typography } from "@material-ui/core";
+import {
+  Button,
+  Container,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
+  TextField,
+  Typography
+} from "@material-ui/core";
 import { makeStyles } from "@material-ui/core/styles";
 import { ArrowForward as ArrowForwardIcon } from "@material-ui/icons";
 import React, { useState } from "react";
@@ -17,7 +25,7 @@ const useStyles = makeStyles(theme => ({
     flexFlow: "column"
   },
   content: {
-    marginTop: "64px",
+    marginTop: "48px",
     padding: "24px",
     flex: 1,
     display: "flex",
