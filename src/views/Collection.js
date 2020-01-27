@@ -35,7 +35,7 @@ import {
 } from "../store/Hooks";
 import { addDoc, deleteDoc, setDoc } from "../store/Store";
 import { sortStringsBy } from "../utils/ArrayUtils";
-import { isAnyNull } from "../utils/ObjectUtils";
+import { isAnyNull, areStringsEqual } from "../utils/ObjectUtils";
 
 const useStyles = makeStyles(theme => ({
   root: {
@@ -203,7 +203,10 @@ export function Collection() {
     };
 
     return (
-      <FrameHeader title="Series" onSearch={setSearchQuery}>
+      <FrameHeader
+        title={`Series (${series.length})`}
+        onSearch={setSearchQuery}
+      >
         {renderCreateSeriesButton()}
         {renderDeleteCollectionButton()}
       </FrameHeader>
@@ -225,14 +228,14 @@ export function Collection() {
     const handleSeriesIncrement = async () => {
       await setDoc([...ids, "series", series.id], {
         ...series,
-        length: +series.length + 1
+        length: Math.floor(+series.length + 1)
       });
     };
 
     const handleSeriesDecrement = async () => {
       await setDoc([...ids, "series", series.id], {
         ...series,
-        length: +series.length - 1
+        length: Math.ceil(+series.length - 1)
       });
     };
 
@@ -279,17 +282,44 @@ export function Collection() {
       );
     };
 
+    const parseSearchQuery = searchQuery => {
+      return searchQuery.match(/"([^"]*)"|(\S+)/g).map(searchItem => {
+        if (searchItem.startsWith("name:")) {
+          const name = searchItem.substring("name:".length);
+          return s => s.name.toLowerCase().includes(name.toLowerCase());
+        } else if (searchItem.startsWith("status:")) {
+          const status = searchItem.substring("status:".length);
+          return s =>
+            areStringsEqual(s.status.toLowerCase(), status.toLowerCase());
+        } else if (searchItem.startsWith("minLength:")) {
+          const minLength = searchItem.substring("minLength:".length);
+          return s => s.length >= minLength;
+        } else if (searchItem.startsWith("maxLength:")) {
+          const maxLength = searchItem.substring("maxLength:".length);
+          return s => s.length <= maxLength;
+        } else {
+          if (searchItem.startsWith(`"`) && searchItem.endsWith(`"`)) {
+            searchItem = searchItem.slice(1, -1);
+          }
+          return s => s.name.toLowerCase().includes(searchItem.toLowerCase());
+        }
+      });
+    };
+
+    let filteredSeries = series;
+    filteredSeries = filteredSeries.sort(sortStringsBy(s => s.name));
+
+    if (searchQuery.length !== 0) {
+      const filters = parseSearchQuery(searchQuery);
+      filters.forEach(f => {
+        filteredSeries = filteredSeries.filter(f);
+      });
+    }
+
     return (
       <List aria-label="series" className={classes.seriesList}>
         {renderEmptySeries()}
-        {series
-          .sort(sortStringsBy(s => s.name))
-          .filter(
-            s =>
-              searchQuery.length === 0 ||
-              s.name.toLowerCase().includes(searchQuery.toLowerCase())
-          )
-          .map(renderSeries)}
+        {filteredSeries.map(renderSeries)}
       </List>
     );
   };

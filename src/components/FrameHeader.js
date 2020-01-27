@@ -11,14 +11,14 @@ import { debounce } from "../utils/FunctionUtils";
 
 const useStyles = makeStyles(theme => ({
   root: {
-    display: "flex"
+    display: "flex",
+    justifyContent: "space-between"
   },
-  title: {
-    flex: 1
-  },
+  title: {},
   input: {
-    flex: 10,
     marginLeft: theme.spacing(3),
+    marginRight: theme.spacing(3),
+    flex: 1,
     background: theme.palette.primary.dark,
     padding: theme.spacing(0.5)
   }
@@ -27,7 +27,7 @@ const useStyles = makeStyles(theme => ({
 export function FrameHeader({ children, title, onSearch = null }) {
   const classes = useStyles();
 
-  const onSearchDebounced = debounce(onSearch, 500);
+  const onSearchDebounced = debounce(onSearch, 250);
   const handleChange = e => {
     onSearchDebounced(e.target.value);
   };
