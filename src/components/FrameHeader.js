@@ -11,6 +11,9 @@ import { isAnyNull } from "../utils/ObjectUtils";
 
 const useStyles = makeStyles(theme => ({
   root: {
+    borderRadius: "4px 4px 0 0"
+  },
+  content: {
     display: "flex",
     justifyContent: "space-between"
   },
@@ -66,8 +69,8 @@ export function FrameHeader({ children, title, onSearch = null }) {
   };
 
   return (
-    <AppBar square={false} position="static" elevation={0}>
-      <Toolbar className={classes.root}>
+    <AppBar position="static" elevation={0} className={classes.root}>
+      <Toolbar className={classes.content}>
         <Typography className={classes.title}>{title}</Typography>
         {renderSearchField()}
         {children}
