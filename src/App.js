@@ -54,7 +54,7 @@ function App() {
     <ThemeProvider theme={darkTheme}>
       <CssBaseline />
       <Container maxWidth={false} className={classes.root}>
-        <Router>
+        <Router basename="/track">
           <Switch>
             {routes.map((route, i) => (
               <Route exact key={i} {...route} />

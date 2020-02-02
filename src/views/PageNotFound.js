@@ -29,7 +29,7 @@ export function PageNotFound() {
     <Container maxWidth={false} className={classes.root}>
       <Header />
       <Container maxWidth="md" className={classes.content}>
-        <Typography variant="h3">404 Not Found</Typography>
+        <Typography variant="h3">404</Typography>
       </Container>
     </Container>
   );

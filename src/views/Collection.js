@@ -253,14 +253,16 @@ export function Collection() {
       >
         <ListItemIcon>{renderSeriesStatusIcon(series.status)}</ListItemIcon>
         <ListItemText primary={series.name} secondary={series.length} />
-        <ListItemSecondaryAction className={classes.seriesLengthContainer}>
-          <IconButton variant="outlined" onClick={handleSeriesIncrement}>
-            <ArrowDropUpIcon />
-          </IconButton>
-          <IconButton variant="outlined" onClick={handleSeriesDecrement}>
-            <ArrowDropDownIcon />
-          </IconButton>
-        </ListItemSecondaryAction>
+        {isOwner ? (
+          <ListItemSecondaryAction className={classes.seriesLengthContainer}>
+            <IconButton variant="outlined" onClick={handleSeriesIncrement}>
+              <ArrowDropUpIcon />
+            </IconButton>
+            <IconButton variant="outlined" onClick={handleSeriesDecrement}>
+              <ArrowDropDownIcon />
+            </IconButton>
+          </ListItemSecondaryAction>
+        ) : null}
       </ListItem>
     );
   };
@@ -314,6 +316,8 @@ export function Collection() {
       filters.forEach(f => {
         filteredSeries = filteredSeries.filter(f);
       });
+    } else {
+      filteredSeries = [];
     }
 
     return (

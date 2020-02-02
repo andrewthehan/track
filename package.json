@@ -2,6 +2,7 @@
   "name": "track",
   "version": "0.1.0",
   "private": true,
+  "homepage": "https://andrewhan.dev/track",
   "dependencies": {
     "@material-ui/core": "^4.5.0",
     "@material-ui/icons": "^4.4.3",
@@ -18,7 +19,7 @@
     "build": "react-scripts build",
     "test": "react-scripts test",
     "eject": "react-scripts eject",
-    "deploy": "gcloud app deploy build/app.yaml --quiet"
+    "deploy": "npm run build && gcloud app deploy build/app.yaml --quiet"
   },
   "eslintConfig": {
     "extends": "react-app"
