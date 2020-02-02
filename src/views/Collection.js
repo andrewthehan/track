@@ -35,7 +35,7 @@ import {
 } from "../store/Hooks";
 import { addDoc, deleteDoc, setDoc } from "../store/Store";
 import { sortStringsBy } from "../utils/ArrayUtils";
-import { isAnyNull, areStringsEqual } from "../utils/ObjectUtils";
+import { areStringsEqual, isAnyNull } from "../utils/ObjectUtils";
 
 const useStyles = makeStyles(theme => ({
   root: {
@@ -90,6 +90,43 @@ export function Collection() {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
 
   const [searchQuery, setSearchQuery] = useState("");
+
+  const createSearchFilter = searchQuery => {
+    return searchQuery
+      .match(/"([^"]*)"|(\S+)/g)
+      .map(searchItem => {
+        if (searchItem.startsWith("name:")) {
+          const name = searchItem.substring("name:".length);
+          return s => s.name.toLowerCase().includes(name.toLowerCase());
+        } else if (searchItem.startsWith("status:")) {
+          const status = searchItem.substring("status:".length);
+          return s =>
+            areStringsEqual(s.status.toLowerCase(), status.toLowerCase());
+        } else if (searchItem.startsWith("minLength:")) {
+          const minLength = searchItem.substring("minLength:".length);
+          return s => s.length >= minLength;
+        } else if (searchItem.startsWith("maxLength:")) {
+          const maxLength = searchItem.substring("maxLength:".length);
+          return s => s.length <= maxLength;
+        } else {
+          if (searchItem.startsWith(`"`) && searchItem.endsWith(`"`)) {
+            searchItem = searchItem.slice(1, -1);
+          }
+          return s => s.name.toLowerCase().includes(searchItem.toLowerCase());
+        }
+      })
+      .reduce(
+        (a, x) => s => x(s) && a(s),
+        s => true
+      );
+  };
+
+  const filteredSeries =
+    searchQuery.length !== 0
+      ? series
+          .filter(createSearchFilter(searchQuery))
+          .sort(sortStringsBy(s => s.name))
+      : [];
 
   const renderSeriesHeader = () => {
     const handleChange = name => event => {
@@ -204,7 +241,9 @@ export function Collection() {
 
     return (
       <FrameHeader
-        title={`Series (${series.length})`}
+        title={`Series (${
+          searchQuery.length !== 0 ? filteredSeries.length : series.length
+        })`}
         onSearch={setSearchQuery}
       >
         {renderCreateSeriesButton()}
@@ -283,42 +322,6 @@ export function Collection() {
         </Typography>
       );
     };
-
-    const parseSearchQuery = searchQuery => {
-      return searchQuery.match(/"([^"]*)"|(\S+)/g).map(searchItem => {
-        if (searchItem.startsWith("name:")) {
-          const name = searchItem.substring("name:".length);
-          return s => s.name.toLowerCase().includes(name.toLowerCase());
-        } else if (searchItem.startsWith("status:")) {
-          const status = searchItem.substring("status:".length);
-          return s =>
-            areStringsEqual(s.status.toLowerCase(), status.toLowerCase());
-        } else if (searchItem.startsWith("minLength:")) {
-          const minLength = searchItem.substring("minLength:".length);
-          return s => s.length >= minLength;
-        } else if (searchItem.startsWith("maxLength:")) {
-          const maxLength = searchItem.substring("maxLength:".length);
-          return s => s.length <= maxLength;
-        } else {
-          if (searchItem.startsWith(`"`) && searchItem.endsWith(`"`)) {
-            searchItem = searchItem.slice(1, -1);
-          }
-          return s => s.name.toLowerCase().includes(searchItem.toLowerCase());
-        }
-      });
-    };
-
-    let filteredSeries = series;
-    filteredSeries = filteredSeries.sort(sortStringsBy(s => s.name));
-
-    if (searchQuery.length !== 0) {
-      const filters = parseSearchQuery(searchQuery);
-      filters.forEach(f => {
-        filteredSeries = filteredSeries.filter(f);
-      });
-    } else {
-      filteredSeries = [];
-    }
 
     return (
       <List aria-label="series" className={classes.seriesList}>
