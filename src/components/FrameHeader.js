@@ -34,6 +34,10 @@ export function FrameHeader({ children, title, onSearch = null }) {
 
   useEffect(() => {
     const giveSearchFocus = e => {
+      if (onSearch == null) {
+        return;
+      }
+
       if (e.keyCode === 114 || (e.ctrlKey && e.keyCode === 70)) {
         e.preventDefault();
 
@@ -46,7 +50,7 @@ export function FrameHeader({ children, title, onSearch = null }) {
     return () => {
       window.removeEventListener("keydown", giveSearchFocus);
     };
-  }, [searchInputRef]);
+  }, [onSearch, searchInputRef]);
 
   const onSearchDebounced = debounce(onSearch, 250);
   const handleChange = e => {
