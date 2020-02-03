@@ -79,7 +79,7 @@ export function NewAccount() {
 
     return (
       <Typography variant="body1">
-        Please sign in to create an account.
+        Please authenticate using Google to create an account.
       </Typography>
     );
   };
@@ -95,10 +95,6 @@ export function NewAccount() {
           Choose a unique username to display to others.
         </DialogTitle>
         <DialogContent>
-          {/* <DialogContentText>
-            To subscribe to this website, please enter your email address here.
-            We will send updates occasionally.
-          </DialogContentText> */}
           <TextField
             required
             autoFocus
