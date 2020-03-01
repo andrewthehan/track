@@ -38,10 +38,12 @@ export function FrameHeader({ children, title, onSearch = null }) {
         return;
       }
 
+      // F3 or CTRL+F
       if (e.keyCode === 114 || (e.ctrlKey && e.keyCode === 70)) {
         e.preventDefault();
 
         searchInputRef.current.focus();
+        searchInputRef.current.select();
       }
     };
 
