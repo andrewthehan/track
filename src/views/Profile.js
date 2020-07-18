@@ -6,12 +6,12 @@ import {
   ListItemIcon,
   ListItemText,
   TextField,
-  Typography
+  Typography,
 } from "@material-ui/core";
 import { makeStyles } from "@material-ui/core/styles";
 import {
   Folder as FolderIcon,
-  PostAdd as PostAddIcon
+  PostAdd as PostAddIcon,
 } from "@material-ui/icons";
 import React, { forwardRef, useState } from "react";
 import { useLocation, useParams } from "react-router";
@@ -26,27 +26,27 @@ import { addDoc } from "../store/Store";
 import { sortStringsBy } from "../utils/ArrayUtils";
 import { isAnyNull } from "../utils/ObjectUtils";
 
-const useStyles = makeStyles(theme => ({
+const useStyles = makeStyles((theme) => ({
   root: {
     padding: 0,
     height: "100%",
     display: "flex",
-    flexFlow: "column"
+    flexFlow: "column",
   },
   content: {
     marginTop: "48px",
     padding: "24px",
     display: "flex",
     flexFlow: "row",
-    justifyContent: "center"
+    justifyContent: "center",
   },
   collectionContainer: {
     flex: 1,
-    height: "100%"
+    height: "100%",
   },
   collectionList: {
-    flex: 1
-  }
+    flex: 1,
+  },
 }));
 
 export function Profile() {
@@ -54,6 +54,8 @@ export function Profile() {
 
   const location = useLocation();
   const params = useParams();
+
+  params.user = decodeURIComponent(params.user);
 
   const userId = useUserId(params.user);
 
@@ -69,10 +71,10 @@ export function Profile() {
   const [searchQuery, setSearchQuery] = useState("");
 
   const renderCollectionHeader = () => {
-    const handleChange = name => event => {
+    const handleChange = (name) => (event) => {
       setCreateDialogValues({
         ...createDialogValues,
-        [name]: event.target.value
+        [name]: event.target.value,
       });
     };
 
@@ -87,7 +89,7 @@ export function Profile() {
 
     const handleSubmit = async () => {
       const name = createDialogValues.name.trim();
-      if (collections.some(c => c.name === name)) {
+      if (collections.some((c) => c.name === name)) {
         throw new Error(
           `Failed to create collection because collection with name ${name} already exists!`
         );
@@ -123,7 +125,7 @@ export function Profile() {
           submitDisabled={
             !createDialogValues.name ||
             !createDialogValues.name.trim() ||
-            collections.some(c => c.name === createDialogValues.name.trim())
+            collections.some((c) => c.name === createDialogValues.name.trim())
           }
         >
           <TextField
@@ -133,7 +135,7 @@ export function Profile() {
             label="Name"
             onChange={handleChange("name")}
           />
-        </FormDialog>
+        </FormDialog>,
       ];
     };
 
@@ -144,7 +146,7 @@ export function Profile() {
     );
   };
 
-  const renderCollection = collection => {
+  const renderCollection = (collection) => {
     const link = `${location.pathname}/collection/${encodeURIComponent(
       collection.name
     )}`;
@@ -186,9 +188,9 @@ export function Profile() {
       <List aria-label="collections" className={classes.collectionList}>
         {renderEmptyCollection()}
         {collections
-          .sort(sortStringsBy(c => c.name))
+          .sort(sortStringsBy((c) => c.name))
           .filter(
-            c =>
+            (c) =>
               searchQuery.length === 0 ||
               c.name.toLowerCase().includes(searchQuery.toLowerCase())
           )

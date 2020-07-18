@@ -3,7 +3,7 @@ import {
   Grid,
   IconButton,
   MenuItem,
-  TextField
+  TextField,
 } from "@material-ui/core";
 import Container from "@material-ui/core/Container";
 import { Delete as DeleteIcon } from "@material-ui/icons";
@@ -20,36 +20,36 @@ import {
   useData,
   useIsOwner,
   useSeriesId,
-  useUserId
+  useUserId,
 } from "../store/Hooks";
 import { deleteDoc, setDoc } from "../store/Store";
 import { areStringsEqual, isAnyNull } from "../utils/ObjectUtils";
 
-const useStyles = makeStyles(theme => ({
+const useStyles = makeStyles((theme) => ({
   root: {
     padding: 0,
     height: "100%",
     display: "flex",
-    flexFlow: "column"
+    flexFlow: "column",
   },
   content: {
     marginTop: "48px",
     padding: "24px",
     display: "flex",
-    flexFlow: "row"
+    flexFlow: "row",
   },
   metadataContainer: {
     flex: 1,
-    height: "100%"
+    height: "100%",
   },
   metadataContent: {
-    padding: "16px"
+    padding: "16px",
   },
   gridItem: {
     display: "flex",
     justifyContent: "center",
-    alignItems: "center"
-  }
+    alignItems: "center",
+  },
 }));
 
 export function Series() {
@@ -57,6 +57,10 @@ export function Series() {
 
   const history = useHistory();
   const params = useParams();
+
+  params.user = decodeURIComponent(params.user);
+  params.collection = decodeURIComponent(params.collection);
+  params.series = decodeURIComponent(params.series);
 
   const userId = useUserId(params.user);
   const collectionId = useCollectionId(params.user, params.collection);
@@ -68,7 +72,7 @@ export function Series() {
     "collections",
     collectionId,
     "series",
-    seriesId
+    seriesId,
   ];
   const series = useData(ids);
 
@@ -123,7 +127,7 @@ export function Series() {
           open={deleteDialogOpen}
           onClose={handleClose}
           submitText="Delete"
-        ></FormDialog>
+        ></FormDialog>,
       ];
     };
 
@@ -133,14 +137,14 @@ export function Series() {
   };
 
   const renderSeriesData = () => {
-    const handleChange = name => event => {
+    const handleChange = (name) => (event) => {
       setEditValues({
         ...editValues,
-        [name]: event.target.value
+        [name]: event.target.value,
       });
     };
 
-    const handleMetadataSubmit = async e => {
+    const handleMetadataSubmit = async (e) => {
       e.preventDefault();
 
       if (!areStringsEqual(series.name, editValues.name)) {
@@ -152,7 +156,7 @@ export function Series() {
       await setDoc(ids, {
         name: editValues.name,
         length: editValues.length,
-        status: editValues.status
+        status: editValues.status,
       });
     };
 

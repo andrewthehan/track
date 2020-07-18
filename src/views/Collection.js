@@ -7,7 +7,7 @@ import {
   ListItemSecondaryAction,
   ListItemText,
   TextField,
-  Typography
+  Typography,
 } from "@material-ui/core";
 import { makeStyles } from "@material-ui/core/styles";
 import {
@@ -17,7 +17,7 @@ import {
   Error as ErrorIcon,
   InsertDriveFile as InsertDriveFileIcon,
   InsertDriveFileOutlined as InsertDriveFileOutlinedIcon,
-  PostAdd as PostAddIcon
+  PostAdd as PostAddIcon,
 } from "@material-ui/icons";
 import React, { forwardRef, useState } from "react";
 import { useHistory, useLocation, useParams } from "react-router";
@@ -31,41 +31,41 @@ import {
   useCollectionId,
   useData,
   useIsOwner,
-  useUserId
+  useUserId,
 } from "../store/Hooks";
 import { addDoc, deleteDoc, setDoc } from "../store/Store";
 import { sortStringsBy } from "../utils/ArrayUtils";
 import { areStringsEqual, isAnyNull } from "../utils/ObjectUtils";
 
-const useStyles = makeStyles(theme => ({
+const useStyles = makeStyles((theme) => ({
   root: {
     padding: 0,
     height: "100%",
     display: "flex",
-    flexFlow: "column"
+    flexFlow: "column",
   },
   content: {
     marginTop: "48px",
     padding: "24px",
     display: "flex",
     flexFlow: "row",
-    justifyContent: "center"
+    justifyContent: "center",
   },
   seriesContainer: {
     flex: 1,
-    height: "100%"
+    height: "100%",
   },
   seriesHeaderTitle: {
-    flex: 1
+    flex: 1,
   },
   seriesList: {
-    flex: 1
+    flex: 1,
   },
   seriesLengthContainer: {
     display: "flex",
     justifyContent: "center",
-    alignItems: "center"
-  }
+    alignItems: "center",
+  },
 }));
 
 export function Collection() {
@@ -74,6 +74,9 @@ export function Collection() {
   const history = useHistory();
   const location = useLocation();
   const params = useParams();
+
+  params.user = decodeURIComponent(params.user);
+  params.collection = decodeURIComponent(params.collection);
 
   const userId = useUserId(params.user);
   const collectionId = useCollectionId(params.user, params.collection);
@@ -91,33 +94,33 @@ export function Collection() {
 
   const [searchQuery, setSearchQuery] = useState("");
 
-  const createSearchFilter = searchQuery => {
+  const createSearchFilter = (searchQuery) => {
     return searchQuery
       .match(/"([^"]*)"|(\S+)/g)
-      .map(searchItem => {
+      .map((searchItem) => {
         if (searchItem.startsWith("name:")) {
           const name = searchItem.substring("name:".length);
-          return s => s.name.toLowerCase().includes(name.toLowerCase());
+          return (s) => s.name.toLowerCase().includes(name.toLowerCase());
         } else if (searchItem.startsWith("status:")) {
           const status = searchItem.substring("status:".length);
-          return s =>
+          return (s) =>
             areStringsEqual(s.status.toLowerCase(), status.toLowerCase());
         } else if (searchItem.startsWith("minLength:")) {
           const minLength = searchItem.substring("minLength:".length);
-          return s => s.length >= minLength;
+          return (s) => s.length >= minLength;
         } else if (searchItem.startsWith("maxLength:")) {
           const maxLength = searchItem.substring("maxLength:".length);
-          return s => s.length <= maxLength;
+          return (s) => s.length <= maxLength;
         } else {
           if (searchItem.startsWith(`"`) && searchItem.endsWith(`"`)) {
             searchItem = searchItem.slice(1, -1);
           }
-          return s => s.name.toLowerCase().includes(searchItem.toLowerCase());
+          return (s) => s.name.toLowerCase().includes(searchItem.toLowerCase());
         }
       })
       .reduce(
-        (a, x) => s => x(s) && a(s),
-        s => true
+        (a, x) => (s) => x(s) && a(s),
+        (s) => true
       );
   };
 
@@ -125,14 +128,14 @@ export function Collection() {
     searchQuery.length !== 0
       ? series
           .filter(createSearchFilter(searchQuery))
-          .sort(sortStringsBy(s => s.name))
+          .sort(sortStringsBy((s) => s.name))
       : [];
 
   const renderSeriesHeader = () => {
-    const handleChange = name => event => {
+    const handleChange = (name) => (event) => {
       setCreateDialogValues({
         ...createDialogValues,
-        [name]: event.target.value
+        [name]: event.target.value,
       });
     };
 
@@ -147,7 +150,7 @@ export function Collection() {
 
     const handleSubmit = async () => {
       const name = createDialogValues.name.trim();
-      if (series.some(s => s.name === name)) {
+      if (series.some((s) => s.name === name)) {
         throw new ErrorIcon(
           `Failed to create series because series with name ${name} already exists!`
         );
@@ -156,7 +159,7 @@ export function Collection() {
       await addDoc(["users", userId, "collections", collectionId, "series"], {
         name,
         length: 0,
-        status: "Incomplete"
+        status: "Incomplete",
       });
       setCreateDialogOpen(false);
     };
@@ -186,7 +189,7 @@ export function Collection() {
           submitDisabled={
             !createDialogValues.name ||
             !createDialogValues.name.trim() ||
-            series.some(s => s.name === createDialogValues.name.trim())
+            series.some((s) => s.name === createDialogValues.name.trim())
           }
         >
           <TextField
@@ -196,7 +199,7 @@ export function Collection() {
             label="Name"
             onChange={handleChange("name")}
           />
-        </FormDialog>
+        </FormDialog>,
       ];
     };
 
@@ -235,7 +238,7 @@ export function Collection() {
           open={deleteDialogOpen}
           onClose={handleClose}
           submitText="Delete"
-        ></FormDialog>
+        ></FormDialog>,
       ];
     };
 
@@ -253,7 +256,7 @@ export function Collection() {
   };
 
   const renderSeries = (series, i) => {
-    const renderSeriesStatusIcon = status => {
+    const renderSeriesStatusIcon = (status) => {
       switch (status) {
         case "Complete":
           return <InsertDriveFileIcon />;
@@ -267,14 +270,14 @@ export function Collection() {
     const handleSeriesIncrement = async () => {
       await setDoc([...ids, "series", series.id], {
         ...series,
-        length: Math.floor(+series.length + 1)
+        length: Math.floor(+series.length + 1),
       });
     };
 
     const handleSeriesDecrement = async () => {
       await setDoc([...ids, "series", series.id], {
         ...series,
-        length: Math.ceil(+series.length - 1)
+        length: Math.ceil(+series.length - 1),
       });
     };
 
