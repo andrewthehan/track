@@ -3,19 +3,20 @@ import {
   InputBase,
   makeStyles,
   Toolbar,
-  Typography
+  Typography,
 } from "@material-ui/core";
 import React, { useEffect, useRef } from "react";
 import { debounce } from "../utils/FunctionUtils";
 import { isAnyNull } from "../utils/ObjectUtils";
+import { useHistory, useLocation } from "react-router";
 
-const useStyles = makeStyles(theme => ({
+const useStyles = makeStyles((theme) => ({
   root: {
-    borderRadius: "4px 4px 0 0"
+    borderRadius: "4px 4px 0 0",
   },
   content: {
     display: "flex",
-    justifyContent: "space-between"
+    justifyContent: "space-between",
   },
   title: {},
   input: {
@@ -23,8 +24,8 @@ const useStyles = makeStyles(theme => ({
     marginRight: theme.spacing(3),
     flex: 1,
     background: theme.palette.primary.dark,
-    padding: theme.spacing(0.5)
-  }
+    padding: theme.spacing(0.5),
+  },
 }));
 
 export function FrameHeader({ children, title, onSearch = null }) {
@@ -33,7 +34,7 @@ export function FrameHeader({ children, title, onSearch = null }) {
   const searchInputRef = useRef(null);
 
   useEffect(() => {
-    const giveSearchFocus = e => {
+    const giveSearchFocus = (e) => {
       if (onSearch == null) {
         return;
       }
@@ -54,9 +55,19 @@ export function FrameHeader({ children, title, onSearch = null }) {
     };
   }, [onSearch, searchInputRef]);
 
-  const onSearchDebounced = debounce(onSearch, 250);
-  const handleChange = e => {
-    onSearchDebounced(e.target.value);
+  const history = useHistory();
+  const location = useLocation();
+  let defaultQuery = new URLSearchParams(location.search).get("q");
+  if (onSearch != null && defaultQuery != null) {
+    onSearch(defaultQuery);
+  }
+
+  const onChangeDebounce = debounce((search) => history.push({ search }), 250);
+  const handleChange = (e) => {
+    const query = e.target.value;
+    const search = query.length === 0 ? null : `?q=${query}`;
+
+    onChangeDebounce(search);
   };
 
   const renderSearchField = () => {
@@ -70,6 +81,7 @@ export function FrameHeader({ children, title, onSearch = null }) {
         placeholder="Search"
         inputProps={{ "aria-label": "search", ref: searchInputRef }}
         onChange={handleChange}
+        defaultValue={defaultQuery}
       />
     );
   };
