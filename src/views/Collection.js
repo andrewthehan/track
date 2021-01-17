@@ -59,10 +59,6 @@ const useStyles = makeStyles((theme) => ({
   seriesHeaderTitle: {
     flex: 1,
   },
-  seriesList: {
-    flex: 1,
-    height: 640,
-  },
   seriesLengthContainer: {
     display: "flex",
     justifyContent: "center",
@@ -340,12 +336,13 @@ export function Collection() {
     };
 
     const WrappedList = forwardRef((props, ref) => (
-      <List className={classes.seriesList} {...props} ref={ref} />
+      <List {...props} ref={ref} />
     ));
 
     return (
       <Virtuoso
         aria-label="series"
+        style={{ height: "640px" }}
         components={{
           EmptyPlaceholder: renderEmptySeries,
           List: WrappedList,
