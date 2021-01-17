@@ -191,6 +191,7 @@ export function Profile() {
           .sort(sortStringsBy((c) => c.name))
           .filter(
             (c) =>
+              isAnyNull(searchQuery) ||
               searchQuery.length === 0 ||
               c.name.toLowerCase().includes(searchQuery.toLowerCase())
           )

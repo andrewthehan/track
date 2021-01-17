@@ -21,6 +21,7 @@ import {
 } from "@material-ui/icons";
 import React, { forwardRef, useState } from "react";
 import { useHistory, useLocation, useParams } from "react-router";
+import { Virtuoso } from "react-virtuoso";
 import { FormDialog } from "../components/FormDialog";
 import { Frame } from "../components/Frame";
 import { FrameHeader } from "../components/FrameHeader";
@@ -60,6 +61,7 @@ const useStyles = makeStyles((theme) => ({
   },
   seriesList: {
     flex: 1,
+    height: 640,
   },
   seriesLengthContainer: {
     display: "flex",
@@ -95,6 +97,10 @@ export function Collection() {
   const [searchQuery, setSearchQuery] = useState("");
 
   const createSearchFilter = (searchQuery) => {
+    if (isAnyNull(searchQuery) || searchQuery.length === 0) {
+      return () => true;
+    }
+
     return searchQuery
       .match(/"([^"]*)"|(\S+)/g)
       .map((searchItem) => {
@@ -124,12 +130,11 @@ export function Collection() {
       );
   };
 
-  const filteredSeries =
-    searchQuery.length !== 0
-      ? series
-          .filter(createSearchFilter(searchQuery))
-          .sort(sortStringsBy((s) => s.name))
-      : [];
+  const seriesToRender = isAnyNull(series)
+    ? []
+    : series
+        .filter(createSearchFilter(searchQuery))
+        .sort(sortStringsBy((s) => s.name));
 
   const renderSeriesHeader = () => {
     const handleChange = (name) => (event) => {
@@ -244,9 +249,7 @@ export function Collection() {
 
     return (
       <FrameHeader
-        title={`Series (${
-          searchQuery.length !== 0 ? filteredSeries.length : series.length
-        })`}
+        title={`Series (${seriesToRender.length})`}
         onSearch={setSearchQuery}
       >
         {renderCreateSeriesButton()}
@@ -255,7 +258,7 @@ export function Collection() {
     );
   };
 
-  const renderSeries = (series, i) => {
+  const renderSeries = (series) => {
     const renderSeriesStatusIcon = (status) => {
       switch (status) {
         case "Complete":
@@ -287,7 +290,6 @@ export function Collection() {
 
     return (
       <ListItem
-        key={series.id}
         button
         component={forwardRef((props, ref) => (
           <LinkRouter to={link} {...props} innerRef={ref} />
@@ -315,22 +317,43 @@ export function Collection() {
         return null;
       }
 
-      return isOwner ? (
-        <Typography align="center" color="textSecondary">
-          Press <PostAddIcon /> to add the first entry.
-        </Typography>
-      ) : (
-        <Typography align="center" color="textSecondary">
-          Empty
-        </Typography>
+      return (
+        <div
+          style={{
+            height: "100%",
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
+          }}
+        >
+          {isOwner ? (
+            <Typography align="center" color="textSecondary">
+              Press <PostAddIcon /> to add the first entry.
+            </Typography>
+          ) : (
+            <Typography align="center" color="textSecondary">
+              Empty
+            </Typography>
+          )}
+        </div>
       );
     };
 
+    const WrappedList = forwardRef((props, ref) => (
+      <List className={classes.seriesList} {...props} ref={ref} />
+    ));
+
     return (
-      <List aria-label="series" className={classes.seriesList}>
-        {renderEmptySeries()}
-        {filteredSeries.map(renderSeries)}
-      </List>
+      <Virtuoso
+        aria-label="series"
+        components={{
+          EmptyPlaceholder: renderEmptySeries,
+          List: WrappedList,
+        }}
+        totalCount={seriesToRender.length}
+        computeItemKey={(i) => seriesToRender[i].id}
+        itemContent={(i) => renderSeries(seriesToRender[i])}
+      />
     );
   };
 

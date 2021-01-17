@@ -57,8 +57,8 @@ export function FrameHeader({ children, title, onSearch = null }) {
 
   const history = useHistory();
   const location = useLocation();
-  let defaultQuery = new URLSearchParams(location.search).get("q");
-  if (onSearch != null && defaultQuery != null) {
+  const defaultQuery = new URLSearchParams(location.search).get("q");
+  if (onSearch != null) {
     onSearch(defaultQuery);
   }
 
