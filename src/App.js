@@ -16,35 +16,35 @@ import { Series } from "./views/Series";
 const routes = [
   {
     path: "/",
-    component: Home
+    component: Home,
   },
   {
     path: "/new",
-    component: NewAccount
+    component: NewAccount,
   },
   {
     path: "/user/:user",
-    component: Profile
+    component: Profile,
   },
   {
     path: "/user/:user/collection/:collection",
-    component: Collection
+    component: Collection,
   },
   {
     path: "/user/:user/collection/:collection/series/:series",
-    component: Series
+    component: Series,
   },
   {
     path: null,
-    component: PageNotFound
-  }
+    component: PageNotFound,
+  },
 ];
 
-const useStyles = makeStyles(theme => ({
+const useStyles = makeStyles((theme) => ({
   root: {
     padding: 0,
-    height: "100%"
-  }
+    height: "100%",
+  },
 }));
 
 function App() {
@@ -54,7 +54,7 @@ function App() {
     <ThemeProvider theme={darkTheme}>
       <CssBaseline />
       <Container maxWidth={false} className={classes.root}>
-        <Router basename="/track">
+        <Router>
           <Switch>
             {routes.map((route, i) => (
               <Route exact key={i} {...route} />

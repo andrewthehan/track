@@ -8,35 +8,35 @@ threadsafe: true
 
 # [START handlers]
 handlers:
-  - url: "/track/service-worker.js"
+  - url: "/service-worker.js"
     secure: always
     static_files: service-worker.js
     upload: service-worker.js
     mime_type: application/javascript
 
-  - url: /track/(precache-manifest.*)$
+  - url: /(precache-manifest.*)$
     secure: always
     mime_type: application/javascript
     static_files: \1
     upload: (precache-manifest.*)$
 
-  - url: /track/(.*\.js)$
+  - url: /(.*\.js)$
     secure: always
     static_files: \1
     upload: .*\.js$
     mime_type: application/javascript
 
-  - url: /track/(.*\.(css|map|png|jpg|svg|ico|json|txt|woff))$
+  - url: /(.*\.(css|map|png|jpg|svg|ico|json|txt|woff))$
     secure: always
     static_files: \1
     upload: .*\.(css|map|png|jpg|svg|ico|json|txt|woff)$
 
-  - url: "/track"
+  - url: "/"
     secure: always
     static_files: index.html
     upload: index.html
 
-  - url: "/track/(.*)"
+  - url: "/(.*)"
     secure: always
     static_files: index.html
     upload: index.html
