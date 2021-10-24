@@ -7,7 +7,7 @@ export const darkTheme = createMuiTheme({
     primary: deepPurple,
     secondary: orange,
     action: {
-      selected: deepPurple[500]
-    }
-  }
+      selected: deepPurple[500],
+    },
+  },
 });

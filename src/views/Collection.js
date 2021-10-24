@@ -1,23 +1,21 @@
 import {
+  Chip,
   Container,
   IconButton,
   List,
   ListItem,
-  ListItemIcon,
   ListItemSecondaryAction,
   ListItemText,
   TextField,
-  Typography,
+  Typography
 } from "@material-ui/core";
+import { blueGrey, deepPurple } from "@material-ui/core/colors";
 import { makeStyles } from "@material-ui/core/styles";
 import {
   ArrowDropDown as ArrowDropDownIcon,
   ArrowDropUp as ArrowDropUpIcon,
   Delete as DeleteIcon,
-  Error as ErrorIcon,
-  InsertDriveFile as InsertDriveFileIcon,
-  InsertDriveFileOutlined as InsertDriveFileOutlinedIcon,
-  PostAdd as PostAddIcon,
+  Error as ErrorIcon, PostAdd as PostAddIcon
 } from "@material-ui/icons";
 import React, { forwardRef, useState } from "react";
 import { useHistory, useLocation, useParams } from "react-router";
@@ -32,7 +30,7 @@ import {
   useCollectionId,
   useData,
   useIsOwner,
-  useUserId,
+  useUserId
 } from "../store/Hooks";
 import { addDoc, deleteDoc, setDoc } from "../store/Store";
 import { sortStringsBy } from "../utils/ArrayUtils";
@@ -255,17 +253,6 @@ export function Collection() {
   };
 
   const renderSeries = (series) => {
-    const renderSeriesStatusIcon = (status) => {
-      switch (status) {
-        case "Complete":
-          return <InsertDriveFileIcon />;
-        case "Incomplete":
-          return <InsertDriveFileOutlinedIcon />;
-        default:
-          return <ErrorIcon />;
-      }
-    };
-
     const handleSeriesIncrement = async () => {
       await setDoc([...ids, "series", series.id], {
         ...series,
@@ -284,6 +271,17 @@ export function Collection() {
       series.name
     )}`;
 
+    function getChipStyles(status) {
+      switch (status) {
+        case "Complete":
+          return { background: deepPurple[300] };
+        case "Incomplete":
+          return { background: blueGrey[300] };
+        default:
+          throw new Error(`Unexpected status: ${status}`);
+      }
+    }
+
     return (
       <ListItem
         button
@@ -291,18 +289,20 @@ export function Collection() {
           <LinkRouter to={link} {...props} innerRef={ref} />
         ))}
       >
-        <ListItemIcon>{renderSeriesStatusIcon(series.status)}</ListItemIcon>
         <ListItemText primary={series.name} secondary={series.length} />
-        {isOwner ? (
-          <ListItemSecondaryAction className={classes.seriesLengthContainer}>
-            <IconButton variant="outlined" onClick={handleSeriesIncrement}>
-              <ArrowDropUpIcon />
-            </IconButton>
-            <IconButton variant="outlined" onClick={handleSeriesDecrement}>
-              <ArrowDropDownIcon />
-            </IconButton>
-          </ListItemSecondaryAction>
-        ) : null}
+        <ListItemSecondaryAction className={classes.seriesLengthContainer}>
+          <Chip label={series.status} style={getChipStyles(series.status)} />
+          {isOwner ? (
+            <>
+              <IconButton size="small" onClick={handleSeriesIncrement}>
+                <ArrowDropUpIcon />
+              </IconButton>
+              <IconButton size="small" onClick={handleSeriesDecrement}>
+                <ArrowDropDownIcon />
+              </IconButton>
+            </>
+          ) : null}
+        </ListItemSecondaryAction>
       </ListItem>
     );
   };
